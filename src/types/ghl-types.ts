@@ -1212,12 +1212,21 @@ export interface GHLCreateCalendarRequest {
   calendarType: 'round_robin' | 'event' | 'class_booking' | 'collective' | 'service_booking' | 'personal';
   teamMembers?: GHLTeamMember[];
   locationConfigurations?: GHLLocationConfiguration[];
+  eventType?: string;
   slotDuration?: number;
   slotDurationUnit?: 'mins' | 'hours';
+  slotInterval?: number;
+  slotIntervalUnit?: 'mins' | 'hours';
+  slotBuffer?: number;
+  slotBufferUnit?: 'mins' | 'hours';
   autoConfirm?: boolean;
   allowReschedule?: boolean;
   allowCancellation?: boolean;
   openHours?: GHLOpenHour[];
+  availabilities?: GHLAvailability[];
+  timezone?: string;
+  formId?: string;
+  eventTitle?: string;
   isActive?: boolean;
 }
 
@@ -1227,13 +1236,21 @@ export interface GHLUpdateCalendarRequest {
   groupId?: string;
   teamMembers?: GHLTeamMember[];
   locationConfigurations?: GHLLocationConfiguration[];
+  eventType?: string;
   slotDuration?: number;
   slotDurationUnit?: 'mins' | 'hours';
+  slotInterval?: number;
+  slotIntervalUnit?: 'mins' | 'hours';
+  slotBuffer?: number;
+  slotBufferUnit?: 'mins' | 'hours';
   autoConfirm?: boolean;
   allowReschedule?: boolean;
   allowCancellation?: boolean;
   openHours?: GHLOpenHour[];
   availabilities?: GHLAvailability[];
+  timezone?: string;
+  formId?: string;
+  eventTitle?: string;
   isActive?: boolean;
 }
 
@@ -1363,8 +1380,19 @@ export interface MCPCreateCalendarParams {
   calendarType: 'round_robin' | 'event' | 'class_booking' | 'collective' | 'service_booking' | 'personal';
   groupId?: string;
   teamMembers?: GHLTeamMember[];
+  locationConfigurations?: GHLLocationConfiguration[];
+  eventType?: string;
   slotDuration?: number;
   slotDurationUnit?: 'mins' | 'hours';
+  slotInterval?: number;
+  slotIntervalUnit?: 'mins' | 'hours';
+  slotBuffer?: number;
+  slotBufferUnit?: 'mins' | 'hours';
+  openHours?: GHLOpenHour[];
+  availabilities?: GHLAvailability[];
+  timezone?: string;
+  formId?: string;
+  eventTitle?: string;
   autoConfirm?: boolean;
   allowReschedule?: boolean;
   allowCancellation?: boolean;
@@ -1377,7 +1405,18 @@ export interface MCPUpdateCalendarParams {
   description?: string;
   groupId?: string;
   teamMembers?: GHLTeamMember[];
+  locationConfigurations?: GHLLocationConfiguration[];
+  eventType?: string;
   slotDuration?: number;
+  slotInterval?: number;
+  slotIntervalUnit?: 'mins' | 'hours';
+  slotBuffer?: number;
+  slotBufferUnit?: 'mins' | 'hours';
+  openHours?: GHLOpenHour[];
+  availabilities?: GHLAvailability[];
+  timezone?: string;
+  formId?: string;
+  eventTitle?: string;
   autoConfirm?: boolean;
   allowReschedule?: boolean;
   allowCancellation?: boolean;

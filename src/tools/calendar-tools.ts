@@ -98,7 +98,7 @@ export class CalendarTools {
       },
       {
         name: 'create_calendar',
-        description: 'Create a new calendar in GoHighLevel',
+        description: 'Create a new calendar in GoHighLevel. Supports full provisioning of a production-ready calendar: teamMembers (the calendar owner; required for a usable personal calendar), locationConfigurations (meeting location: physical address, Zoom, Google Meet), eventType, slotInterval/slotIntervalUnit, slotBuffer/slotBufferUnit, openHours (recurring weekly availability) vs availabilities (date-specific overrides), timezone, formId (booking form), and eventTitle. All optional and backward compatible.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -151,6 +151,128 @@ export class CalendarTools {
               description: 'Make calendar active immediately (default: true)',
               default: true
             },
+            teamMembers: {
+              type: 'array',
+              description: 'Calendar owner(s). CRITICAL for owner semantics: assigns the GHL user(s) who own the calendar. A personal calendar with no team member has no owner and cannot take bookings.',
+              items: {
+                type: 'object',
+                properties: {
+                  userId: { type: 'string', description: 'GHL user ID of the owner/team member' },
+                  priority: { type: 'number', description: 'Selection priority (0, 0.5, or 1)' },
+                  isPrimary: { type: 'boolean', description: 'Whether this is the primary team member' },
+                  locationConfigurations: {
+                    type: 'array',
+                    description: 'Per-member meeting locations',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        kind: { type: 'string', enum: ['custom', 'zoom_conference', 'google_conference', 'inbound_call', 'outbound_call', 'physical', 'booker', 'ms_teams_conference'] },
+                        location: { type: 'string' },
+                        meetingId: { type: 'string' }
+                      },
+                      required: ['kind']
+                    }
+                  }
+                },
+                required: ['userId']
+              }
+            },
+            locationConfigurations: {
+              type: 'array',
+              description: 'Root-level meeting locations on the calendar (physical address, Zoom, Google Meet). Distinct from the per-teamMember locationConfigurations.',
+              items: {
+                type: 'object',
+                properties: {
+                  kind: { type: 'string', enum: ['custom', 'zoom_conference', 'google_conference', 'inbound_call', 'outbound_call', 'physical', 'booker', 'ms_teams_conference'] },
+                  location: { type: 'string' },
+                  meetingId: { type: 'string' }
+                },
+                required: ['kind']
+              }
+            },
+            eventType: {
+              type: 'string',
+              description: 'Internal distribution/event type, e.g. "RoundRobin_OptimizeForAvailability" (matches the existing bodywork calendars)'
+            },
+            slotInterval: {
+              type: 'number',
+              description: 'Start-time granularity in slotIntervalUnit (e.g. 30 for slots every 30 min, or equal to slotDuration for back-to-back)'
+            },
+            slotIntervalUnit: {
+              type: 'string',
+              enum: ['mins', 'hours'],
+              description: 'Unit for slotInterval'
+            },
+            slotBuffer: {
+              type: 'number',
+              description: 'Buffer time after each appointment, in slotBufferUnit'
+            },
+            slotBufferUnit: {
+              type: 'string',
+              enum: ['mins', 'hours'],
+              description: 'Unit for slotBuffer'
+            },
+            openHours: {
+              type: 'array',
+              description: 'RECURRING weekly availability (use for ongoing availability). Each entry maps days of the week to time ranges. Distinct from availabilities (date-specific).',
+              items: {
+                type: 'object',
+                properties: {
+                  daysOfTheWeek: { type: 'array', items: { type: 'number' }, description: 'Days 0-6 (0 = Sunday)' },
+                  hours: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        openHour: { type: 'number' },
+                        openMinute: { type: 'number' },
+                        closeHour: { type: 'number' },
+                        closeMinute: { type: 'number' }
+                      },
+                      required: ['openHour', 'openMinute', 'closeHour', 'closeMinute']
+                    }
+                  }
+                },
+                required: ['daysOfTheWeek', 'hours']
+              }
+            },
+            availabilities: {
+              type: 'array',
+              description: 'DATE-SPECIFIC availability overrides (use for one-off/pop-up dates). Each entry is a specific date with time ranges. Distinct from openHours (recurring weekly).',
+              items: {
+                type: 'object',
+                properties: {
+                  date: { type: 'string', description: 'ISO date, e.g. 2026-07-01T00:00:00.000Z' },
+                  hours: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        openHour: { type: 'number' },
+                        openMinute: { type: 'number' },
+                        closeHour: { type: 'number' },
+                        closeMinute: { type: 'number' }
+                      },
+                      required: ['openHour', 'openMinute', 'closeHour', 'closeMinute']
+                    }
+                  },
+                  deleted: { type: 'boolean' }
+                },
+                required: ['date', 'hours']
+              }
+            },
+            timezone: {
+              type: 'string',
+              description: 'Calendar timezone, e.g. "America/Los_Angeles"'
+            },
+            formId: {
+              type: 'string',
+              description: 'GHL booking form ID to attach. Omit for the default booking form (name/email/phone).'
+            },
+            eventTitle: {
+              type: 'string',
+              description: 'Template for the booked event title, e.g. "{{contact.name}} & {{location.name}} Session"'
+            },
           },
           required: ['name', 'calendarType']
         },
@@ -185,7 +307,7 @@ export class CalendarTools {
       },
       {
         name: 'update_calendar',
-        description: 'Update an existing calendar in GoHighLevel',
+        description: 'Update an existing calendar in GoHighLevel. Supports the same production fields as create_calendar: teamMembers (owner), locationConfigurations (meeting location), eventType, slotInterval/slotIntervalUnit, slotBuffer/slotBufferUnit, openHours (recurring weekly availability) vs availabilities (date-specific overrides), timezone, formId, and eventTitle. All optional; only the fields you pass are changed.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -220,6 +342,128 @@ export class CalendarTools {
             isActive: {
               type: 'boolean',
               description: 'Updated active status'
+            },
+            teamMembers: {
+              type: 'array',
+              description: 'Calendar owner(s). CRITICAL for owner semantics: assigns the GHL user(s) who own the calendar. A personal calendar with no team member has no owner and cannot take bookings.',
+              items: {
+                type: 'object',
+                properties: {
+                  userId: { type: 'string', description: 'GHL user ID of the owner/team member' },
+                  priority: { type: 'number', description: 'Selection priority (0, 0.5, or 1)' },
+                  isPrimary: { type: 'boolean', description: 'Whether this is the primary team member' },
+                  locationConfigurations: {
+                    type: 'array',
+                    description: 'Per-member meeting locations',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        kind: { type: 'string', enum: ['custom', 'zoom_conference', 'google_conference', 'inbound_call', 'outbound_call', 'physical', 'booker', 'ms_teams_conference'] },
+                        location: { type: 'string' },
+                        meetingId: { type: 'string' }
+                      },
+                      required: ['kind']
+                    }
+                  }
+                },
+                required: ['userId']
+              }
+            },
+            locationConfigurations: {
+              type: 'array',
+              description: 'Root-level meeting locations on the calendar (physical address, Zoom, Google Meet). Distinct from the per-teamMember locationConfigurations.',
+              items: {
+                type: 'object',
+                properties: {
+                  kind: { type: 'string', enum: ['custom', 'zoom_conference', 'google_conference', 'inbound_call', 'outbound_call', 'physical', 'booker', 'ms_teams_conference'] },
+                  location: { type: 'string' },
+                  meetingId: { type: 'string' }
+                },
+                required: ['kind']
+              }
+            },
+            eventType: {
+              type: 'string',
+              description: 'Internal distribution/event type, e.g. "RoundRobin_OptimizeForAvailability"'
+            },
+            slotInterval: {
+              type: 'number',
+              description: 'Start-time granularity in slotIntervalUnit'
+            },
+            slotIntervalUnit: {
+              type: 'string',
+              enum: ['mins', 'hours'],
+              description: 'Unit for slotInterval'
+            },
+            slotBuffer: {
+              type: 'number',
+              description: 'Buffer time after each appointment, in slotBufferUnit'
+            },
+            slotBufferUnit: {
+              type: 'string',
+              enum: ['mins', 'hours'],
+              description: 'Unit for slotBuffer'
+            },
+            openHours: {
+              type: 'array',
+              description: 'RECURRING weekly availability (use for ongoing availability). Each entry maps days of the week to time ranges. Distinct from availabilities (date-specific).',
+              items: {
+                type: 'object',
+                properties: {
+                  daysOfTheWeek: { type: 'array', items: { type: 'number' }, description: 'Days 0-6 (0 = Sunday)' },
+                  hours: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        openHour: { type: 'number' },
+                        openMinute: { type: 'number' },
+                        closeHour: { type: 'number' },
+                        closeMinute: { type: 'number' }
+                      },
+                      required: ['openHour', 'openMinute', 'closeHour', 'closeMinute']
+                    }
+                  }
+                },
+                required: ['daysOfTheWeek', 'hours']
+              }
+            },
+            availabilities: {
+              type: 'array',
+              description: 'DATE-SPECIFIC availability overrides (use for one-off/pop-up dates). Each entry is a specific date with time ranges. Distinct from openHours (recurring weekly).',
+              items: {
+                type: 'object',
+                properties: {
+                  date: { type: 'string', description: 'ISO date, e.g. 2026-07-01T00:00:00.000Z' },
+                  hours: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        openHour: { type: 'number' },
+                        openMinute: { type: 'number' },
+                        closeHour: { type: 'number' },
+                        closeMinute: { type: 'number' }
+                      },
+                      required: ['openHour', 'openMinute', 'closeHour', 'closeMinute']
+                    }
+                  },
+                  deleted: { type: 'boolean' }
+                },
+                required: ['date', 'hours']
+              }
+            },
+            timezone: {
+              type: 'string',
+              description: 'Calendar timezone, e.g. "America/Los_Angeles"'
+            },
+            formId: {
+              type: 'string',
+              description: 'GHL booking form ID to attach. Omit to leave unchanged.'
+            },
+            eventTitle: {
+              type: 'string',
+              description: 'Template for the booked event title, e.g. "{{contact.name}} & {{location.name}} Session"'
             },
           },
           required: ['calendarId']
@@ -1284,8 +1528,19 @@ export class CalendarTools {
         calendarType: params.calendarType,
         groupId: params.groupId,
         teamMembers: params.teamMembers,
+        locationConfigurations: params.locationConfigurations,
+        eventType: params.eventType,
         slotDuration: params.slotDuration || 30,
         slotDurationUnit: params.slotDurationUnit || 'mins',
+        slotInterval: params.slotInterval,
+        slotIntervalUnit: params.slotIntervalUnit,
+        slotBuffer: params.slotBuffer,
+        slotBufferUnit: params.slotBufferUnit,
+        openHours: params.openHours,
+        availabilities: params.availabilities,
+        timezone: params.timezone,
+        formId: params.formId,
+        eventTitle: params.eventTitle,
         autoConfirm: params.autoConfirm !== undefined ? params.autoConfirm : true,
         allowReschedule: params.allowReschedule !== undefined ? params.allowReschedule : true,
         allowCancellation: params.allowCancellation !== undefined ? params.allowCancellation : true,
