@@ -1747,6 +1747,10 @@ export interface GHLCreateCustomFieldRequest {
   textBoxListOptions?: GHLCustomFieldTextBoxOption[];
   position?: number;
   model?: 'contact' | 'opportunity';
+  // Optional passthrough fields supported by POST /locations/{id}/customFields.
+  parentId?: string;
+  fieldKey?: string;
+  options?: string[];
 }
 
 // Update Custom Field Request
@@ -1965,6 +1969,10 @@ export interface MCPCreateCustomFieldParams {
   textBoxListOptions?: GHLCustomFieldTextBoxOption[];
   position?: number;
   model?: 'contact' | 'opportunity';
+  // Optional passthrough fields supported by POST /locations/{id}/customFields.
+  parentId?: string;
+  fieldKey?: string;
+  options?: string[];
 }
 
 export interface MCPGetCustomFieldParams {

@@ -482,7 +482,7 @@ export class LocationTools {
       },
       {
         name: 'create_location_custom_field',
-        description: 'Create a new custom field for a location',
+        description: 'Create a new custom field for a location. Supports placing the field in a folder (parentId), setting picklist values (options) for SINGLE_OPTIONS/MULTIPLE_OPTIONS/RADIO/CHECKBOX fields, and supplying an explicit fieldKey.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -512,6 +512,19 @@ export class LocationTools {
               type: 'number',
               description: 'Position/order of the field (default: 0)',
               default: 0
+            },
+            parentId: {
+              type: 'string',
+              description: 'ID of the custom field folder to place this field into. Omit to use the location default folder.'
+            },
+            fieldKey: {
+              type: 'string',
+              description: 'Explicit internal field key (for example "bii_body_state"). If omitted, GHL derives the key from the name.'
+            },
+            options: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Picklist values for SINGLE_OPTIONS, MULTIPLE_OPTIONS, RADIO, or CHECKBOX fields (for example ["Instagram", "Podcast", "Referral"]).'
             },
           },
           required: ['locationId', 'name', 'dataType']
