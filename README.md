@@ -2,6 +2,17 @@
 
 Model Context Protocol server for GoHighLevel. It exposes GHL API operations as MCP tools over stdio, Streamable HTTP, and legacy SSE.
 
+## Lo Rox Fork Modifications
+
+Running log of changes in this fork (`si-commits/Go-High-Level-MCP-2026-Complete`) that diverge from upstream. Anything not listed here is inherited unchanged. Rebuild (`npm run build`) and restart the MCP after pulling any of these so the updated tool schema is live.
+
+- **`create_location_custom_field` extended params** ([`5597aa3`](https://github.com/si-commits/Go-High-Level-MCP-2026-Complete/commit/5597aa3)) — the V1 contact custom-field create tool now forwards three optional params to `POST /locations/{id}/customFields`:
+  - `parentId` — place the field in a custom-field folder.
+  - `options` — array of strings; picklist values for `SINGLE_OPTIONS`, `MULTIPLE_OPTIONS`, `RADIO`, and `CHECKBOX` fields.
+  - `fieldKey` — explicit internal key. Caveat: GHL auto-prefixes the model, so a supplied `bii_body_state` is stored as `contact.bii_body_state`. Pass the bare key, not a pre-prefixed one.
+
+  All three are optional and backward compatible (existing callers are unaffected). This was needed because the V2 `ghl_*custom_field*` tools reject the `contact`/`opportunity` models, so contact-field folders and options must go through the V1 endpoint.
+
 ## Current API Coverage
 
 - Official GHL endpoints parsed: `576`
