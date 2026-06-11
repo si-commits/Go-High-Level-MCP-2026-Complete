@@ -3649,19 +3649,9 @@ export class GHLApiClient {
    */
   async updateCalendarNotification(calendarId: string, notificationId: string, updateData: GHLUpdateCalendarNotificationRequest): Promise<GHLApiResponse<GHLCalendarNotification>> {
     try {
-      // GHL's notification PUT validates altType and altId in the body and
-      // returns 422 without them (create infers both from the URL; PUT does
-      // not). Both are always derivable here: altType is always "calendar" and
-      // altId is the calendarId. Auto-inject so the PUT succeeds. Caller-supplied
-      // values, if any, win.
-      const body: GHLUpdateCalendarNotificationRequest = {
-        altType: 'calendar',
-        altId: calendarId,
-        ...updateData
-      };
       const response: AxiosResponse<GHLCalendarNotification> = await this.axiosInstance.put(
         `/calendars/${calendarId}/notifications/${notificationId}`,
-        body
+        updateData
       );
 
       return this.wrapResponse(response.data);
