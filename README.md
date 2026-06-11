@@ -27,6 +27,11 @@ Running log of changes in this fork (`si-commits/Go-High-Level-MCP-2026-Complete
   - **`create_calendar_group` `isActive` passthrough:** the group create tool now forwards the optional `isActive` flag, so a group can be created active (or staged inactive) in one call.
   - **`create_calendar` / `update_calendar` `preBuffer` / `preBufferUnit` passthrough:** both calendar tools now forward the pre-appointment buffer (distinct from the existing post-appointment `slotBuffer`). Optional; defaults to `0` / `mins` when omitted.
 
+- **Notification doc clarifications + `altType`/`altId` revert** ([`e957e1a`](https://github.com/si-commits/Go-High-Level-MCP-2026-Complete/commit/e957e1a), tool descriptions [`d2044eb`](https://github.com/si-commits/Go-High-Level-MCP-2026-Complete/commit/d2044eb)): documentation-only polish to the notification surface. No behavioural change.
+  - **`update_calendar_notification` `altType`/`altId` injection reverted:** an earlier diagnostic auto-injected `altType` and `altId` into the notification PUT to try to clear a `422`. It did not work (the PUT is non-functional regardless of body), so the injection was removed and both source files restored to their pre-extension state. The diagnostic docs and probe scripts are kept for reference. See `notification-update-wrapper-extension.md`.
+  - **`update_calendar_notification` description now warns the PUT is dead:** the tool description states the underlying GHL PUT is non-functional on this API version (`422` regardless of body shape, partial state mutation on error) and points body/subject changes to the GHL UI instead.
+  - **`get_calendar_notifications` description documents the filter pattern:** pass `deleted: false` to surface only live notifications. `isActive: true` does not exclude soft-deleted records; they remain listed with `deleted: true` / `isActive: false` until hard-deleted, and no hard-delete tool exists.
+
 ## Current API Coverage
 
 - Official GHL endpoints parsed: `576`
