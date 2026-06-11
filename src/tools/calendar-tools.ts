@@ -1303,7 +1303,7 @@ export class CalendarTools {
       },
       {
         name: 'update_calendar_notification',
-        description: 'Update calendar notification. Reminder timing uses beforeTime (fire N units before the appointment) and follow-up timing uses afterTime (fire N units after), each an array of { timeOffset, unit } objects, e.g. beforeTime: [{ timeOffset: 24, unit: "hours" }].',
+        description: 'Update calendar notification. Reminder timing uses beforeTime (fire N units before the appointment) and follow-up timing uses afterTime (fire N units after), each an array of { timeOffset, unit } objects, e.g. beforeTime: [{ timeOffset: 24, unit: "hours" }]. The GHL PUT also requires altType and altId in the body or it returns 422; these are auto-injected (altType="calendar", altId=the calendarId), so they are not user-passable params.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -2479,7 +2479,13 @@ export class CalendarTools {
   private async updateCalendarNotification(params: MCPUpdateCalendarNotificationParams): Promise<{ success: boolean; message: string }> {
     try {
       const { calendarId, notificationId, ...updateData } = params;
-      const response = await this.ghlClient.updateCalendarNotification(calendarId, notificationId, updateData);
+      // GHL's notification PUT validates altType and altId in the request body
+      // and returns 422 without them (unlike create, which infers both from the
+      // URL). They are not user-passable params because both are always
+      // derivable: altType is always "calendar" and altId is always the
+      // calendarId already on the request. Auto-inject so the PUT succeeds.
+      const payload = { ...updateData, altType: 'calendar' as const, altId: calendarId };
+      const response = await this.ghlClient.updateCalendarNotification(calendarId, notificationId, payload);
       
       if (!response.success || !response.data) {
         const errorMsg = response.error?.message || 'Unknown API error';
