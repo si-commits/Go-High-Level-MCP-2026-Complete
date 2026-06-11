@@ -1224,7 +1224,6 @@ export interface GHLCreateCalendarRequest {
   allowCancellation?: boolean;
   openHours?: GHLOpenHour[];
   availabilities?: GHLAvailability[];
-  timezone?: string;
   formId?: string;
   eventTitle?: string;
   isActive?: boolean;
@@ -1248,7 +1247,6 @@ export interface GHLUpdateCalendarRequest {
   allowCancellation?: boolean;
   openHours?: GHLOpenHour[];
   availabilities?: GHLAvailability[];
-  timezone?: string;
   formId?: string;
   eventTitle?: string;
   isActive?: boolean;
@@ -1390,7 +1388,6 @@ export interface MCPCreateCalendarParams {
   slotBufferUnit?: 'mins' | 'hours';
   openHours?: GHLOpenHour[];
   availabilities?: GHLAvailability[];
-  timezone?: string;
   formId?: string;
   eventTitle?: string;
   autoConfirm?: boolean;
@@ -1414,7 +1411,6 @@ export interface MCPUpdateCalendarParams {
   slotBufferUnit?: 'mins' | 'hours';
   openHours?: GHLOpenHour[];
   availabilities?: GHLAvailability[];
-  timezone?: string;
   formId?: string;
   eventTitle?: string;
   autoConfirm?: boolean;

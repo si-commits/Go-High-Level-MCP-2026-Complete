@@ -98,7 +98,7 @@ export class CalendarTools {
       },
       {
         name: 'create_calendar',
-        description: 'Create a new calendar in GoHighLevel. Supports full provisioning of a production-ready calendar: teamMembers (the calendar owner; required for a usable personal calendar), locationConfigurations (meeting location: physical address, Zoom, Google Meet), eventType, slotInterval/slotIntervalUnit, slotBuffer/slotBufferUnit, openHours (recurring weekly availability) vs availabilities (date-specific overrides), timezone, formId (booking form), and eventTitle. All optional and backward compatible.',
+        description: 'Create a new calendar in GoHighLevel. Supports full provisioning of a production-ready calendar: teamMembers (the calendar owner; required for a usable personal calendar), locationConfigurations (meeting location), eventType, slotInterval/slotIntervalUnit, slotBuffer/slotBufferUnit, openHours (recurring weekly availability) vs availabilities (date-specific overrides), formId (booking form), and eventTitle. All optional and backward compatible. Note: meeting location (physical address, Zoom link, etc.) should be set inside teamMembers[].locationConfigurations, not the root locationConfigurations. GHL accepts the root param but does not persist it on this API version; the team-member-scoped path is the working one.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -261,10 +261,6 @@ export class CalendarTools {
                 required: ['date', 'hours']
               }
             },
-            timezone: {
-              type: 'string',
-              description: 'Calendar timezone, e.g. "America/Los_Angeles"'
-            },
             formId: {
               type: 'string',
               description: 'GHL booking form ID to attach. Omit for the default booking form (name/email/phone).'
@@ -307,7 +303,7 @@ export class CalendarTools {
       },
       {
         name: 'update_calendar',
-        description: 'Update an existing calendar in GoHighLevel. Supports the same production fields as create_calendar: teamMembers (owner), locationConfigurations (meeting location), eventType, slotInterval/slotIntervalUnit, slotBuffer/slotBufferUnit, openHours (recurring weekly availability) vs availabilities (date-specific overrides), timezone, formId, and eventTitle. All optional; only the fields you pass are changed.',
+        description: 'Update an existing calendar in GoHighLevel. Supports the same production fields as create_calendar: teamMembers (owner), locationConfigurations (meeting location), eventType, slotInterval/slotIntervalUnit, slotBuffer/slotBufferUnit, openHours (recurring weekly availability) vs availabilities (date-specific overrides), formId, and eventTitle. All optional; only the fields you pass are changed. Note: meeting location should be set inside teamMembers[].locationConfigurations, not the root locationConfigurations. GHL accepts the root param but does not persist it on this API version; the team-member-scoped path is the working one.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -452,10 +448,6 @@ export class CalendarTools {
                 },
                 required: ['date', 'hours']
               }
-            },
-            timezone: {
-              type: 'string',
-              description: 'Calendar timezone, e.g. "America/Los_Angeles"'
             },
             formId: {
               type: 'string',
@@ -1538,7 +1530,6 @@ export class CalendarTools {
         slotBufferUnit: params.slotBufferUnit,
         openHours: params.openHours,
         availabilities: params.availabilities,
-        timezone: params.timezone,
         formId: params.formId,
         eventTitle: params.eventTitle,
         autoConfirm: params.autoConfirm !== undefined ? params.autoConfirm : true,
