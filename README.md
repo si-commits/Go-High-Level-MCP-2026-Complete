@@ -13,6 +13,13 @@ Running log of changes in this fork (`si-commits/Go-High-Level-MCP-2026-Complete
 
   All three are optional and backward compatible (existing callers are unaffected). This was needed because the V2 `ghl_*custom_field*` tools reject the `contact`/`opportunity` models, so contact-field folders and options must go through the V1 endpoint.
 
+- **`create_calendar` / `update_calendar` extended params** ([`ad7ee4d`](https://github.com/si-commits/Go-High-Level-MCP-2026-Complete/commit/ad7ee4d), smoke test [`dcf48b4`](https://github.com/si-commits/Go-High-Level-MCP-2026-Complete/commit/dcf48b4), fix [`05a04ae`](https://github.com/si-commits/Go-High-Level-MCP-2026-Complete/commit/05a04ae)) — both calendar tools now forward 11 optional params to `POST /calendars/` and `PUT /calendars/{id}`, so a calendar can be provisioned production-ready instead of as an ownerless, locationless shell: `teamMembers`, `locationConfigurations`, `eventType`, `slotInterval`, `slotIntervalUnit`, `slotBuffer`, `slotBufferUnit`, `openHours`, `availabilities`, `formId`, `eventTitle`. All optional and backward compatible.
+  - `teamMembers` is the **owner** of the calendar; a personal calendar with no team member has no owner and cannot take bookings.
+  - **Meeting location is team-member-scoped:** set the physical address / Zoom / Meet inside `teamMembers[].locationConfigurations`, **not** the root `locationConfigurations`. GHL accepts the root param but does not persist it on this API version (smoke-tested).
+  - `openHours` is recurring weekly availability; `availabilities` is date-specific overrides.
+  - **`timezone` is not supported** by GHL on this API version — it returns a fatal `422: property timezone should not exist` on both create and update, so it was deliberately left out. Calendars inherit the location timezone.
+  - **Lesson for future wrapper work:** `create_calendar` builds its request body from an explicit `calendarData` allow-list (not a spread), so a new passthrough param must be added in **three** places — the type, the schema, and the handler's `calendarData` object. `update_calendar` spreads (`{ calendarId, ...updateData }`), so type + schema is enough there. This differs from the custom-field extension, whose handler already spread.
+
 ## Current API Coverage
 
 - Official GHL endpoints parsed: `576`
