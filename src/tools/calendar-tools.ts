@@ -2429,19 +2429,22 @@ export class CalendarTools {
   /**
    * CREATE CALENDAR NOTIFICATIONS
    */
-  private async createCalendarNotifications(params: MCPCreateCalendarNotificationParams): Promise<{ success: boolean; message: string }> {
+  private async createCalendarNotifications(params: MCPCreateCalendarNotificationParams): Promise<{ success: boolean; notifications?: any[]; message: string }> {
     try {
       const { calendarId, notifications } = params;
       const response = await this.ghlClient.createCalendarNotifications(calendarId, notifications);
-      
+
       if (!response.success || !response.data) {
         const errorMsg = response.error?.message || 'Unknown API error';
         throw new Error(`API request failed: ${errorMsg}`);
       }
-      
+
+      const created = Array.isArray(response.data) ? response.data : [];
+
       return {
         success: true,
-        message: 'Calendar notifications created successfully'
+        notifications: created,
+        message: `Created ${created.length} calendar notification(s)`
       };
     } catch (error) {
       throw new Error(`Failed to create calendar notifications: ${error instanceof Error ? error.message : String(error)}`);

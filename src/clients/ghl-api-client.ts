@@ -3589,11 +3589,14 @@ export class GHLApiClient {
    */
   async createCalendarNotifications(calendarId: string, notifications: GHLCreateCalendarNotificationRequest[]): Promise<GHLApiResponse<GHLCalendarNotification[]>> {
     try {
-      const payload = { notifications };
-
+      // GHL expects the raw array as the request body. Wrapping it in
+      // { notifications } returns a 500. Note: GHL rejects a POST that
+      // contains more than one record of the same notificationType (400);
+      // a reminder with multiple offsets must use a multi-element beforeTime
+      // array on a single record, not separate records.
       const response: AxiosResponse<GHLCalendarNotification[]> = await this.axiosInstance.post(
         `/calendars/${calendarId}/notifications`,
-        payload
+        notifications
       );
 
       return this.wrapResponse(response.data);
