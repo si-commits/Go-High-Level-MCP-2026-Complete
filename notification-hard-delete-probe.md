@@ -65,3 +65,28 @@ Template bodies to paste are in `email-templates-provisioned.md` (#5 `6a2a69a355
 ## Cleanup
 
 The throwaway calendar was deleted (cascade). A prior sweep confirmed no `SMOKE TEST` calendars linger.
+
+## Follow-up (2026-06-12): hard-delete confirmed unviable across two probe types
+
+The wrapper polish pass re-tested the cascade behaviour directly
+(`wrapper-polish-smoke.md`, Probe 10) and the result confirms and tightens the
+conclusion above. Deleting a calendar does **not** purge its child inApp
+notifications: it soft-cascades them (flips `deleted: true` / `isActive: false`,
+bumps version), but the rows survive the parent deletion and remain resolvable by
+direct id GET. So the calendar-delete route is also a soft-delete, not a hard one.
+
+That makes the hard-delete approach for the BII notifications unviable across
+**two** independent probe types now:
+
+1. Direct delete routes only soft-delete (this doc, original probe).
+2. Parent-calendar delete only soft-cascades (the polish-pass Probe 10).
+
+Both leave orphaned `deleted: true` records that the API cannot purge, and a
+same-type re-POST can revive the stale record with its old body (the slot is not
+freed, see `notification-update-wrapper-extension.md`). 
+
+**Recommendation stands and is now firmer: configure the BII notification bodies
+by manual paste in the GHL UI.** Do not attempt a delete-and-recreate cleanup
+path through the API; it cannot produce a clean state and risks reviving stale
+records. The UI uses GHL internal endpoints not subject to the public-API PUT
+limitation and is the only path to a clean notification body.
