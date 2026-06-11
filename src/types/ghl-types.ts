@@ -1219,6 +1219,8 @@ export interface GHLCreateCalendarRequest {
   slotIntervalUnit?: 'mins' | 'hours';
   slotBuffer?: number;
   slotBufferUnit?: 'mins' | 'hours';
+  preBuffer?: number;
+  preBufferUnit?: 'mins' | 'hours';
   autoConfirm?: boolean;
   allowReschedule?: boolean;
   allowCancellation?: boolean;
@@ -1242,6 +1244,8 @@ export interface GHLUpdateCalendarRequest {
   slotIntervalUnit?: 'mins' | 'hours';
   slotBuffer?: number;
   slotBufferUnit?: 'mins' | 'hours';
+  preBuffer?: number;
+  preBufferUnit?: 'mins' | 'hours';
   autoConfirm?: boolean;
   allowReschedule?: boolean;
   allowCancellation?: boolean;
@@ -1386,6 +1390,8 @@ export interface MCPCreateCalendarParams {
   slotIntervalUnit?: 'mins' | 'hours';
   slotBuffer?: number;
   slotBufferUnit?: 'mins' | 'hours';
+  preBuffer?: number;
+  preBufferUnit?: 'mins' | 'hours';
   openHours?: GHLOpenHour[];
   availabilities?: GHLAvailability[];
   formId?: string;
@@ -1409,6 +1415,8 @@ export interface MCPUpdateCalendarParams {
   slotIntervalUnit?: 'mins' | 'hours';
   slotBuffer?: number;
   slotBufferUnit?: 'mins' | 'hours';
+  preBuffer?: number;
+  preBufferUnit?: 'mins' | 'hours';
   openHours?: GHLOpenHour[];
   availabilities?: GHLAvailability[];
   formId?: string;

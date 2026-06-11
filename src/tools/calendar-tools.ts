@@ -212,6 +212,15 @@ export class CalendarTools {
               enum: ['mins', 'hours'],
               description: 'Unit for slotBuffer'
             },
+            preBuffer: {
+              type: 'number',
+              description: 'Buffer time before each appointment, in preBufferUnit'
+            },
+            preBufferUnit: {
+              type: 'string',
+              enum: ['mins', 'hours'],
+              description: 'Unit for preBuffer'
+            },
             openHours: {
               type: 'array',
               description: 'RECURRING weekly availability (use for ongoing availability). Each entry maps days of the week to time ranges. Distinct from availabilities (date-specific).',
@@ -399,6 +408,15 @@ export class CalendarTools {
               type: 'string',
               enum: ['mins', 'hours'],
               description: 'Unit for slotBuffer'
+            },
+            preBuffer: {
+              type: 'number',
+              description: 'Buffer time before each appointment, in preBufferUnit'
+            },
+            preBufferUnit: {
+              type: 'string',
+              enum: ['mins', 'hours'],
+              description: 'Unit for preBuffer'
             },
             openHours: {
               type: 'array',
@@ -1207,7 +1225,7 @@ export class CalendarTools {
       },
       {
         name: 'create_calendar_notifications',
-        description: 'Create calendar notifications',
+        description: 'Create calendar notifications. Reminder timing is set with beforeTime (fire N units BEFORE the appointment, for notificationType "reminder") and follow-up timing with afterTime (fire N units AFTER, for notificationType "followup"). Both are arrays of { timeOffset, unit } objects, e.g. 7 days before = beforeTime: [{ timeOffset: 7, unit: "days" }], 24 hours before = beforeTime: [{ timeOffset: 24, unit: "hours" }]. Event-triggered types (booked, confirmation, cancellation, reschedule) fire immediately and need no timing.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -1224,6 +1242,30 @@ export class CalendarTools {
                   templateId: { type: 'string', description: 'Template ID' },
                   body: { type: 'string', description: 'Notification body' },
                   subject: { type: 'string', description: 'Notification subject' },
+                  beforeTime: {
+                    type: 'array',
+                    description: 'Reminder timing: fire N units BEFORE the appointment. Use on notificationType "reminder". Array of { timeOffset, unit }. Examples: 7 days before = [{ timeOffset: 7, unit: "days" }]; 24 hours before = [{ timeOffset: 24, unit: "hours" }]. Multiple elements in one record may fire multiple reminders.',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        timeOffset: { type: 'number', description: 'How many units before the appointment' },
+                        unit: { type: 'string', description: 'Time unit, e.g. "days", "hours", "mins"' }
+                      },
+                      required: ['timeOffset', 'unit']
+                    }
+                  },
+                  afterTime: {
+                    type: 'array',
+                    description: 'Follow-up timing: fire N units AFTER the appointment. Use on notificationType "followup". Array of { timeOffset, unit }. Example: 2 hours after = [{ timeOffset: 2, unit: "hours" }].',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        timeOffset: { type: 'number', description: 'How many units after the appointment' },
+                        unit: { type: 'string', description: 'Time unit, e.g. "days", "hours", "mins"' }
+                      },
+                      required: ['timeOffset', 'unit']
+                    }
+                  },
                 },
                 required: ['receiverType', 'channel', 'notificationType']
               },
@@ -1261,7 +1303,7 @@ export class CalendarTools {
       },
       {
         name: 'update_calendar_notification',
-        description: 'Update calendar notification',
+        description: 'Update calendar notification. Reminder timing uses beforeTime (fire N units before the appointment) and follow-up timing uses afterTime (fire N units after), each an array of { timeOffset, unit } objects, e.g. beforeTime: [{ timeOffset: 24, unit: "hours" }].',
         inputSchema: {
           type: 'object',
           properties: {
@@ -1275,6 +1317,30 @@ export class CalendarTools {
             templateId: { type: 'string', description: 'Template ID' },
             body: { type: 'string', description: 'Notification body' },
             subject: { type: 'string', description: 'Notification subject' },
+            beforeTime: {
+              type: 'array',
+              description: 'Reminder timing: fire N units BEFORE the appointment (notificationType "reminder"). Array of { timeOffset, unit }, e.g. [{ timeOffset: 7, unit: "days" }].',
+              items: {
+                type: 'object',
+                properties: {
+                  timeOffset: { type: 'number', description: 'How many units before the appointment' },
+                  unit: { type: 'string', description: 'Time unit, e.g. "days", "hours", "mins"' }
+                },
+                required: ['timeOffset', 'unit']
+              }
+            },
+            afterTime: {
+              type: 'array',
+              description: 'Follow-up timing: fire N units AFTER the appointment (notificationType "followup"). Array of { timeOffset, unit }, e.g. [{ timeOffset: 2, unit: "hours" }].',
+              items: {
+                type: 'object',
+                properties: {
+                  timeOffset: { type: 'number', description: 'How many units after the appointment' },
+                  unit: { type: 'string', description: 'Time unit, e.g. "days", "hours", "mins"' }
+                },
+                required: ['timeOffset', 'unit']
+              }
+            },
           },
           required: ['calendarId', 'notificationId']
         },
@@ -1528,6 +1594,8 @@ export class CalendarTools {
         slotIntervalUnit: params.slotIntervalUnit,
         slotBuffer: params.slotBuffer,
         slotBufferUnit: params.slotBufferUnit,
+        preBuffer: params.preBuffer,
+        preBufferUnit: params.preBufferUnit,
         openHours: params.openHours,
         availabilities: params.availabilities,
         formId: params.formId,
@@ -1900,7 +1968,8 @@ export class CalendarTools {
         locationId: this.ghlClient.getConfig().locationId,
         name: params.name,
         description: params.description,
-        slug: params.slug
+        slug: params.slug,
+        ...(params.isActive !== undefined ? { isActive: params.isActive } : {})
       };
 
       const response = await this.ghlClient.createCalendarGroup(groupData);

@@ -3319,18 +3319,20 @@ export class GHLApiClient {
 
   /**
    * Validate calendar group slug
-   * GET /calendars/groups/slug/validate
+   * POST /calendars/groups/validate-slug
+   * GHL expects a POST with { locationId, slug } in the body. The earlier
+   * GET /calendars/groups/slug/validate path returned 404 (wrong endpoint).
    */
   async validateCalendarGroupSlug(slug: string, locationId?: string): Promise<GHLApiResponse<GHLValidateGroupSlugResponse>> {
     try {
-      const params = {
+      const body = {
         locationId: locationId || this.config.locationId,
         slug
       };
 
-      const response: AxiosResponse<GHLValidateGroupSlugResponse> = await this.axiosInstance.get(
-        '/calendars/groups/slug/validate',
-        { params }
+      const response: AxiosResponse<GHLValidateGroupSlugResponse> = await this.axiosInstance.post(
+        '/calendars/groups/validate-slug',
+        body
       );
 
       return this.wrapResponse(response.data);
