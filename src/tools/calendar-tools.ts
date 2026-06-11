@@ -2479,13 +2479,9 @@ export class CalendarTools {
   private async updateCalendarNotification(params: MCPUpdateCalendarNotificationParams): Promise<{ success: boolean; message: string }> {
     try {
       const { calendarId, notificationId, ...updateData } = params;
-      // GHL's notification PUT validates altType and altId in the request body
-      // and returns 422 without them (unlike create, which infers both from the
-      // URL). They are not user-passable params because both are always
-      // derivable: altType is always "calendar" and altId is always the
-      // calendarId already on the request. Auto-inject so the PUT succeeds.
-      const payload = { ...updateData, altType: 'calendar' as const, altId: calendarId };
-      const response = await this.ghlClient.updateCalendarNotification(calendarId, notificationId, payload);
+      // altType/altId are auto-injected in the client's updateCalendarNotification
+      // (GHL's PUT 422s without them). Not user-passable; both are derivable.
+      const response = await this.ghlClient.updateCalendarNotification(calendarId, notificationId, updateData);
       
       if (!response.success || !response.data) {
         const errorMsg = response.error?.message || 'Unknown API error';

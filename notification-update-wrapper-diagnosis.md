@@ -1,5 +1,14 @@
 # Notification Update Wrapper — Phase A Diagnosis (read-only)
 
+> **CORRECTION (2026-06-11, post Phase C):** Section 1's conclusion that GHL never
+> returns `body`/`subject` on GET is **WRONG**. Every specimen probed here had an
+> empty body (booked notifications created empty; the in-person reminder whose body
+> never actually saved), and GHL omits empty fields. When a body IS set via create,
+> the singular GET returns `body` and `subject` in full. Body verification on read
+> IS possible with the existing passthrough wrapper. Section 2's altType/altId
+> hypothesis also did not hold: the PUT 422s regardless of altType/altId. See
+> `notification-update-wrapper-extension.md` for the corrected findings.
+
 Date: 2026-06-11. Location: `1W01uH5EthLl1oJRj8Xq` (Lo Rox). MCP: `ghl-lorox` (rebuilt dist).
 Scope: read-only. One probe script (`scripts/notification-body-probe.js`, pure GET) plus source reads. No GHL writes except the agreed re-soft-delete of the in-person reminder to restore safe state (done before this diagnosis).
 
