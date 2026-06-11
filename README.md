@@ -20,6 +20,13 @@ Running log of changes in this fork (`si-commits/Go-High-Level-MCP-2026-Complete
   - **`timezone` is not supported** by GHL on this API version — it returns a fatal `422: property timezone should not exist` on both create and update, so it was deliberately left out. Calendars inherit the location timezone.
   - **Lesson for future wrapper work:** `create_calendar` builds its request body from an explicit `calendarData` allow-list (not a spread), so a new passthrough param must be added in **three** places — the type, the schema, and the handler's `calendarData` object. `update_calendar` spreads (`{ calendarId, ...updateData }`), so type + schema is enough there. This differs from the custom-field extension, whose handler already spread.
 
+- **Calendar notification timing + group/buffer fixes** ([`e4ca391`](https://github.com/si-commits/Go-High-Level-MCP-2026-Complete/commit/e4ca391), body fix + smoke results [`60493d9`](https://github.com/si-commits/Go-High-Level-MCP-2026-Complete/commit/60493d9)) — four related wrapper changes to complete the calendar provisioning surface. All optional and backward compatible.
+  - **`create_calendar_notifications` timing params:** each notification item now forwards `beforeTime` and `afterTime`, both optional arrays of `{ timeOffset, unit }`. `beforeTime` drives reminder timing (fire N units before the appointment, for `notificationType: "reminder"`), `afterTime` drives follow-up timing (fire N units after, for `notificationType: "followup"`). Example: a reminder 7 days and 24 hours before is `beforeTime: [{ timeOffset: 7, unit: "days" }, { timeOffset: 24, unit: "hours" }]`. Array element order is preserved by GHL.
+  - **Notification body must be a raw array, not a wrapped object:** GHL returns `500` when the notification create body is wrapped (e.g. `{ notifications: [...] }`); the handler now posts the bare array. This was the fix in `60493d9` after the Phase C smoke test surfaced the 500s.
+  - **`validate_group_slug` endpoint fix:** corrected the calendar-group slug validation call to the working GHL endpoint so slug availability checks return a real result instead of erroring.
+  - **`create_calendar_group` `isActive` passthrough:** the group create tool now forwards the optional `isActive` flag, so a group can be created active (or staged inactive) in one call.
+  - **`create_calendar` / `update_calendar` `preBuffer` / `preBufferUnit` passthrough:** both calendar tools now forward the pre-appointment buffer (distinct from the existing post-appointment `slotBuffer`). Optional; defaults to `0` / `mins` when omitted.
+
 ## Current API Coverage
 
 - Official GHL endpoints parsed: `576`
