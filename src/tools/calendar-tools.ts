@@ -1203,7 +1203,7 @@ export class CalendarTools {
       },
       {
         name: 'get_calendar_notifications',
-        description: 'Get calendar notifications',
+        description: 'Get calendar notifications. To exclude soft-deleted notifications from results, pass deleted: false. Do not rely on isActive: true for this: soft-deleted records remain in the listing with deleted: true and isActive: false until hard-deleted (no hard-delete tool currently exists). The deleted filter is the correct way to surface only live notifications.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -1303,7 +1303,7 @@ export class CalendarTools {
       },
       {
         name: 'update_calendar_notification',
-        description: 'Update calendar notification. Reminder timing uses beforeTime (fire N units before the appointment) and follow-up timing uses afterTime (fire N units after), each an array of { timeOffset, unit } objects, e.g. beforeTime: [{ timeOffset: 24, unit: "hours" }].',
+        description: 'Update calendar notification. Reminder timing uses beforeTime (fire N units before the appointment) and follow-up timing uses afterTime (fire N units after), each an array of { timeOffset, unit } objects, e.g. beforeTime: [{ timeOffset: 24, unit: "hours" }]. Known limitation: the underlying GHL PUT endpoint for notification updates is currently non-functional on this API version. It returns 422 regardless of body shape and partially mutates state on error. Avoid using this tool for body or subject changes. For copy changes, use the GHL UI instead (Settings > Calendars > [calendar] > Notifications & policies > [notification type] > Email tab). See notification-update-wrapper-extension.md in this repo for full diagnostic detail.',
         inputSchema: {
           type: 'object',
           properties: {
