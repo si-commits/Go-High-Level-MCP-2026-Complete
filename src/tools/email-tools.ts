@@ -61,7 +61,7 @@ export class EmailTools {
       },
       {
         name: 'create_email_template',
-        description: 'Create a new email template in GoHighLevel.',
+        description: 'Create a new email template in GoHighLevel. Runs the full two-step GHL flow: POST /emails/builder creates the shell, then POST /emails/builder/data sets the html body (the shell endpoint alone does not persist the body, it leaves GHL default boilerplate). The body-set step records an editor via updatedBy, which defaults to a configured Lo Rox user when not supplied.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -71,12 +71,16 @@ export class EmailTools {
             },
             html: {
               type: 'string',
-              description: 'HTML content of the template.'
+              description: 'HTML content of the template. Set as the actual body via the second step of the create flow.'
             },
             isPlainText: {
               type: 'boolean',
               description: 'Whether the template is plain text.',
               default: false
+            },
+            updatedBy: {
+              type: 'string',
+              description: 'Optional location user ID recorded as the editor when the body is set. GHL requires a non-empty value; defaults to a configured Lo Rox user if omitted.'
             },
           },
           required: ['title', 'html']
@@ -117,7 +121,7 @@ export class EmailTools {
       },
       {
         name: 'update_email_template',
-        description: 'Update an existing email template in GoHighLevel.',
+        description: 'Update an existing email template body in GoHighLevel via POST /emails/builder/data. GHL requires a non-empty updatedBy (location user ID) on this endpoint; it is defaulted to a configured Lo Rox user when not supplied, and can be overridden.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -132,6 +136,10 @@ export class EmailTools {
             previewText: {
               type: 'string',
               description: 'The updated preview text for the template.'
+            },
+            updatedBy: {
+              type: 'string',
+              description: 'Optional location user ID recorded as the editor. GHL requires a non-empty value; defaults to a configured Lo Rox user if omitted.'
             },
           },
           required: ['templateId', 'html']

@@ -1520,6 +1520,12 @@ export interface MCPCreateEmailTemplateParams {
   title: string;
   html: string;
   isPlainText?: boolean;
+  /**
+   * Location user ID recorded as the editor when the body content is set in
+   * step 2 of the create flow (POST /emails/builder/data). GHL requires a
+   * non-empty string here. Optional; defaults to the configured fallback user.
+   */
+  updatedBy?: string;
 }
 
 export interface MCPGetEmailTemplatesParams {
@@ -1531,6 +1537,12 @@ export interface MCPUpdateEmailTemplateParams {
   templateId: string;
   html: string;
   previewText?: string;
+  /**
+   * Location user ID recorded as the editor on POST /emails/builder/data.
+   * GHL requires a non-empty string here. Optional; defaults to the configured
+   * fallback user.
+   */
+  updatedBy?: string;
 }
 
 export interface MCPDeleteEmailTemplateParams {

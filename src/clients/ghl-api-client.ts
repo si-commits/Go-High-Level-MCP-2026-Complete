@@ -2209,12 +2209,32 @@ export class GHLApiClient {
 
   async createEmailTemplate(params: MCPCreateEmailTemplateParams): Promise<GHLApiResponse<any>> {
     try {
-      const response: AxiosResponse<any> = await this.axiosInstance.post('/emails/builder', {
+      const { updatedBy, ...shellParams } = params;
+      // Step 1: create the template shell. POST /emails/builder does NOT persist
+      // the body content; the html field here is accepted but ignored for the body.
+      const createResponse: AxiosResponse<any> = await this.axiosInstance.post('/emails/builder', {
         locationId: this.config.locationId,
         type: 'html',
-        ...params
+        ...shellParams
       });
-      return this.wrapResponse(response.data);
+      const created = createResponse.data || {};
+      // GHL returns the new templateId in both `id` and `redirect`; fall back
+      // across shapes in case the response changes.
+      const templateId = created.id || created.redirect || created._id || created.templateId;
+      // Step 2: set the body content via the data endpoint (the only endpoint
+      // that persists the html). Requires a non-empty updatedBy user ID.
+      if (templateId) {
+        await this.axiosInstance.post('/emails/builder/data', {
+          locationId: this.config.locationId,
+          templateId,
+          html: shellParams.html,
+          editorType: 'html',
+          // Default editor: Jenna (Lo Rox Coach). /emails/builder/data rejects an empty updatedBy.
+          updatedBy: updatedBy || 'UIChIX3a0wWAs7vdhdfM'
+        });
+      }
+      // Normalize so callers always get a clean `id` alongside the raw response.
+      return this.wrapResponse(templateId ? { ...created, id: templateId, templateId } : created);
     } catch (error) {
       throw this.handleApiError(error as AxiosError<GHLErrorResponse>);
     }
@@ -2236,12 +2256,14 @@ export class GHLApiClient {
 
   async updateEmailTemplate(params: MCPUpdateEmailTemplateParams): Promise<GHLApiResponse<any>> {
     try {
-      const { templateId, ...data } = params;
+      const { templateId, updatedBy, ...data } = params;
       const response: AxiosResponse<any> = await this.axiosInstance.post('/emails/builder/data', {
         locationId: this.config.locationId,
         templateId,
         ...data,
-        editorType: 'html'
+        editorType: 'html',
+        // Default editor: Jenna (Lo Rox Coach). /emails/builder/data rejects an empty updatedBy.
+        updatedBy: updatedBy || 'UIChIX3a0wWAs7vdhdfM'
       });
       return this.wrapResponse(response.data);
     } catch (error) {
