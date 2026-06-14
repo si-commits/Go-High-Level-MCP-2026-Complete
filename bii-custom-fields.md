@@ -21,11 +21,35 @@ Each field was created with `model: contact`, then read back via `get_location_c
 | 4 | How Heard | `xVCsFzmADSolxC0LGh9u` | contact.bii_how_heard | SINGLE_OPTIONS | Instagram, Podcast, Referral, Lo Rox Studio, Other |
 | 5 | Anything Else | `NDVJvdVRwlYcsfyHy0N5` | contact.bii_anything_else | LARGE_TEXT | — |
 | 6 | Location | `TW8Ovn3wkMFpULP5qOdp` | contact.bii_location | TEXT | — |
-| 7 | Equipment Access | `JlDJ42dXcbAaekmOpebn` | contact.bii_equipment_access | MULTIPLE_OPTIONS | Roller, Balls, Block, Strap, Rebounder, Sound Tools, None of the above, Other |
+| 7 | Equipment Access | `JlDJ42dXcbAaekmOpebn` | contact.bii_equipment_access | MULTIPLE_OPTIONS | Full size Foam Roller, Travel Roller, Rebounder, Body Sphere, Aligned Domes, Infinity Roll, Body Toning Loop, None of the above, Other |
 | 8 | T&Cs Accepted At | `ZAn6aTP7fW6UX3FYvwu3` | contact.bii_tcs_accepted_at | DATE | — |
 | 9 | Intake Submitted At | `MqkmwfNRLlrFG4rOtZiI` | contact.bii_intake_submitted_at | DATE | — |
 | 10 | Program Type | `WWPElTlPQHkNY6p3GkvF` | contact.bii_program_type | SINGLE_OPTIONS | Single Session, 3-Series, 10-Series, Virtual Program, Pop-Up, TBD |
 | 11 | Studio Access Granted | `My3LKEpkLvtO8p9tuYuW` | contact.bii_studio_access_granted | CHECKBOX | Granted |
+
+## Equipment Access options update (2026-06-15)
+
+The Equipment Access field (`JlDJ42dXcbAaekmOpebn`) had its picklist options
+replaced to match Lo's actual tools list. The table and tree in this doc reflect
+the new 9-option list.
+
+Applied via the GHL UI (Settings -> Custom Fields), not the MCP. Contact-field
+option edits are UI-only on this connection: the V1 `update_location_custom_field`
+tool does not expose options at all, and the V2 `ghl_update_custom_field` tool
+(which does expose a replace-all options update) rejects contact-model fields with
+`GHL API Error (400): Fields with model contact is not supported on this route`.
+This is the same V2 contact-model limitation noted under Rollback below.
+
+- **Old options (8, rollback reference):** Roller, Balls, Block, Strap, Rebounder,
+  Sound Tools, None of the above, Other.
+- **New options (9):** Full size Foam Roller, Travel Roller, Rebounder, Body
+  Sphere, Aligned Domes, Infinity Roll, Body Toning Loop, None of the above,
+  Other. Rebounder is the only carry-over; Roller, Balls, Block, Strap, and Sound
+  Tools were removed.
+- **Backward compatibility:** a contact already holding a removed value keeps that
+  value on its record, but removed values no longer appear in the field's option
+  list. No real contacts have submitted the Virtual application form yet (still
+  being built), so this is a no-impact change.
 
 ## How it appears in GHL UI (Settings -> Custom Fields)
 
@@ -37,7 +61,7 @@ Body Intelligence Institute            [folder pDPx2ONpj6G9ktTqju3l]
 ├─ How Heard                           (SINGLE_OPTIONS: Instagram | Podcast | Referral | Lo Rox Studio | Other)
 ├─ Anything Else                       (LARGE_TEXT)
 ├─ Location                            (TEXT)
-├─ Equipment Access                    (MULTIPLE_OPTIONS: Roller | Balls | Block | Strap | Rebounder | Sound Tools | None of the above | Other)
+├─ Equipment Access                    (MULTIPLE_OPTIONS: Full size Foam Roller | Travel Roller | Rebounder | Body Sphere | Aligned Domes | Infinity Roll | Body Toning Loop | None of the above | Other)
 ├─ T&Cs Accepted At                    (DATE)
 ├─ Intake Submitted At                 (DATE)
 ├─ Program Type                        (SINGLE_OPTIONS: Single Session | 3-Series | 10-Series | Virtual Program | Pop-Up | TBD)
