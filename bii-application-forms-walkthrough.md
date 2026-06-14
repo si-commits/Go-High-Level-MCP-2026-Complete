@@ -262,9 +262,10 @@ Anything Else.
 10. **Equipment Access**: drag the existing `Equipment Access` field (it renders
     as a multi-select / checkboxes). Label:
     `What movement equipment do you have access to?`. Required: ON. Confirm options
-    read: Roller, Balls, Block, Strap, Rebounder, Sound Tools, None of the above,
-    Other. Do not retype them. ("None of the above" lets an applicant satisfy the
-    required toggle if they have nothing.)
+    read: Full size Foam Roller, Travel Roller, Rebounder, Body Sphere, Aligned
+    Domes, Infinity Roll, Body Toning Loop, None of the above, Other. Do not retype
+    them. ("None of the above" lets an applicant satisfy the required toggle if
+    they have nothing.)
 11. **Anything Else**: existing `Anything Else` field (paragraph). Label:
     `Anything else you would like Lo to know?`. Required: OFF.
 
