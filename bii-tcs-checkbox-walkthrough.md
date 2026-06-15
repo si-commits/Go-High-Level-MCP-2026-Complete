@@ -1,186 +1,94 @@
-# BII T&Cs Acceptance Checkbox: Shared Booking Form Walkthrough
+# BII T&Cs Acceptance: Calendar Consent Checkbox + Product Description
 
-Adds a required Terms & Conditions acceptance checkbox to both BII calendar booking
-forms, by building one shared booking form and attaching it to both calendars. A
-client cannot complete a booking without ticking it.
+Status: **IMPLEMENTED via MCP on 2026-06-16.** This supersedes the earlier
+custom-booking-form plan that previously lived in this file. The switch followed
+the investigation in `tcs-lightweight-options-diagnosis.md`, which proved the
+calendar's built-in consent checkbox is required-enforced, making a custom form
+unnecessary for a required affirmative acceptance.
 
-## Why a shared form (Option B)
+## What was implemented
 
-Both BII calendars currently use GHL's default booking form, which has no required
-T&Cs field. Rather than repurpose the per-calendar consent checkbox (which cannot
-reliably carry a clickable link and whose required-enforcement is unverifiable, see
-`tcs-checkbox-diagnosis.md`), we build one custom form with an explicit required
-Terms checkbox and attach it to both calendars. One form, so a future edit to the
-terms language is a single change that propagates to both.
+### 1. Calendar consent checkbox (the required acceptance)
 
-## What you are building
+Both BII calendars now carry a Terms & Conditions acceptance as their booking-form
+consent checkbox, set via `update_calendar`:
 
-1. One form: `BII - Booking Form` (standard contact fields + a required T&Cs
-   checkbox).
-2. That form attached to both calendars:
-   - In-Person `9czE4WeZ4QbbDIHFxlOP`
-   - Virtual `JzlzhxG86qNPAsiELNV2`
+| calendar | id | new consentLabel |
+|---|---|---|
+| BII - In-Person Sessions | `9czE4WeZ4QbbDIHFxlOP` | I have read and agree to the Terms & Conditions (https://laurenroxburgh.com/terms-conditions). |
+| BII - Virtual Sessions | `JzlzhxG86qNPAsiELNV2` | (same) |
 
-The terms URL `https://laurenroxburgh.com/terms-conditions` is a placeholder: the
-T&Cs page is Phase 1 task 8 and is not built yet. The checkbox is fully functional
-now; the link will 404 until that page exists. That is expected during testing.
+The consent checkbox renders on the booking form and is required to complete a
+booking (the rendered input carries `data-required="true"` / `aria-required="true"`,
+confirmed in the investigation). The terms URL renders as plain text, not a
+clickable link (a known limit of the consent label); the link becomes meaningful
+once the T&Cs page exists (Phase 1 task 8), and even then it is not clickable from
+the consent label, only readable.
 
----
+### 2. Product descriptions (defense-in-depth notice at checkout)
 
-# Part 1: Build the shared booking form
+Each of the three BII products now ends its description with a terms reference,
+set via `ghl_update_product`. The notice shows at the payment step.
 
-## Navigate to a new form
+| product | id | appended sentence |
+|---|---|---|
+| BII Single Session | `6a2a1445af2123a4da1d1342` | By completing this purchase, you agree to our Terms & Conditions (https://laurenroxburgh.com/terms-conditions). |
+| BII 3-Series | `6a2a145899eef43fed863e66` | (same) |
+| BII 10-Series | `6a2a1469fc5f50dbbcfd51e7` | (same) |
 
-1. In the GHL left sidebar, click "Sites".
-2. Click the "Forms" tab.
-3. Click the "Builder" sub-tab.
-4. Click "+ Add Form" (or "Create New Form"). A blank form builder opens.
+The original marketing copy of each description was preserved; only the terms
+sentence was appended.
 
-## Name the form
+## Verification
 
-1. Click the form name field at the top of the builder.
-2. Type exactly: `BII - Booking Form`
+- **Calendars:** read back via `get_calendar`. Both show the new `consentLabel`,
+  and all other config matches `bii-calendars.md` (teamMembers, groupId,
+  slotDuration 90, slotInterval 30, slotBuffer 30 / 0, eventTitle, etc.).
+- **Products:** read back via `ghl_get_product`. All three show the appended terms
+  sentence with the original description intact, and name / SERVICE type /
+  availableInStore preserved.
+- **Required-enforcement** was established in the investigation by the rendered
+  checkbox's `data-required="true"`. A belt-and-suspenders manual check (open a
+  booking link, fill the form, leave the box unticked, click Schedule, confirm it
+  blocks) can confirm it end to end if wanted.
 
-## Add the fields, in this order
+## Incident and lesson: update_calendar resets slotDuration if omitted
 
-The first four are standard fields, from the builder's standard / contact group
-(select them, do not create new custom fields):
+During this build, the first pass sent a **minimal body** (`{ calendarId,
+consentLabel }`) to each calendar, on the assumption (from the wrapper-polish
+Probe 9) that `update_calendar` preserves all omitted fields. That assumption was
+**wrong**: the minimal update **reset `slotDuration` from 90 to 30** on both
+calendars (GHL's calendar PUT defaults `slotDuration` to 30 when it is absent from
+the body), while preserving other fields like `teamMembers`, `slotBuffer`, and
+`slotInterval`. This was caught immediately by comparing the read-back against the
+authoritative `bii-calendars.md` (which records 90 mins) and **fixed** by
+re-asserting `slotDuration: 90` together with the slot config and the new
+`consentLabel` in a fuller update. Final state verified at 90 mins on both.
 
-1. First Name. Label: `First Name`. Required: ON.
-2. Last Name. Label: `Last Name`. Required: ON.
-3. Email. Label: `Email`. Required: ON.
-4. Phone. Label: `Phone`. Required: ON.
+**Lesson for any future `update_calendar` call:** do not rely on a minimal body.
+Always include `slotDuration` (and the other slot params you care about) in the
+update, because GHL silently defaults `slotDuration` to 30 when it is omitted. The
+earlier "minimal body is safe" note (wrapper-polish smoke, Probe 9) only held
+because that probe used a default-config calendar where 30 was already correct; it
+does not generalize.
 
-## Add the Terms & Conditions checkbox (field 5)
+## Out of scope (for later)
 
-Try these in order; stop at the first that works in your builder.
+- **`bii_tcs_accepted_at` timestamp stamping:** GHL does not stamp a datetime when
+  the consent box is ticked. Bake a "set `bii_tcs_accepted_at` to now" action into
+  the Payment Received workflow when that is built next. Field already exists
+  (`ZAn6aTP7fW6UX3FYvwu3`).
+- **The actual T&Cs page** at `https://laurenroxburgh.com/terms-conditions`
+  (Phase 1 task 8). Until it exists the URL 404s; the acceptance mechanism works
+  regardless.
 
-**Best, if available: a dedicated "Terms and Conditions" element.** If the form
-builder's element list has a "Terms and Conditions" (or "Terms") element, use it:
-enter the acceptance text and the URL `https://laurenroxburgh.com/terms-conditions`,
-and set Required ON. This element renders a clickable link natively.
+## Rollback
 
-**Primary: a Checkbox with an inline link in its label.** Add a Checkbox field and
-set its label to (markdown link syntax):
-
-```
-I have read and agree to the [Terms & Conditions](https://laurenroxburgh.com/terms-conditions)
-```
-
-Set Required: ON. If the builder renders "Terms & Conditions" as a clickable link,
-this is done.
-
-**Fallback, if the inline link shows as literal text instead of a link:** use a
-text-element + checkbox combo.
-
-1. Add a Text element above the checkbox with the line:
-   `Please read our Terms & Conditions before booking.` and make the words
-   "Terms & Conditions" a clickable hyperlink to
-   `https://laurenroxburgh.com/terms-conditions` (select the words, use the link
-   tool in the text editor).
-2. Add a Checkbox field below it with the plain label:
-   `I have read and agree to the Terms & Conditions`
-3. Set the checkbox Required: ON.
-
-Either way, the checkbox must be **Required**, so a booking cannot be submitted
-without it ticked.
-
-## Save, publish, and capture the form ID
-
-1. Click Save (top right).
-2. The form is live once saved. Open the "Integrate Form" / share option and note
-   the **form ID** (it appears in the share link). Write it down: it is needed to
-   attach the form to the calendars in Part 2.
-
-| item | value |
-|---|---|
-| Form name | BII - Booking Form |
-| Form ID | _fill in_ |
-
----
-
-# Part 2: Attach the form to both calendars
-
-Pick one path. Option 2a (MCP) is recommended; 2b (UI) is the no-dependency
-fallback.
-
-## Option 2a (recommended): attach via MCP
-
-Once the form ID is known, the form is attached to each calendar by setting the
-calendar's `formId`. This is two `update_calendar` calls:
-
-```
-update_calendar  calendarId=9czE4WeZ4QbbDIHFxlOP  formId=<BII - Booking Form ID>
-update_calendar  calendarId=JzlzhxG86qNPAsiELNV2  formId=<BII - Booking Form ID>
-```
-
-Why this is safe: `update_calendar` merges (it does not blank omitted fields). This
-was verified directly during the calendar wrapper smoke tests (formId persisted
-through an unrelated update, and a minimal-body update preserved all other config),
-so sending only `{ calendarId, formId }` changes only the booking form and leaves
-team members, availability, notifications, and everything else intact.
-
-To run this path: hand the form ID to CC and the two calls are run and committed,
-or run the equivalent `update_calendar` MCP calls directly. After attaching,
-proceed to Verification.
-
-## Option 2b (fallback): attach in the UI
-
-For each calendar (In-Person `9czE4WeZ4QbbDIHFxlOP`, Virtual
-`JzlzhxG86qNPAsiELNV2`):
-
-1. Go to the calendar settings: Calendars, then edit the calendar.
-2. Open the "Forms" tab (in some GHL versions "Forms & Payment").
-3. In the form selector, change it from "Default Form" to `BII - Booking Form`.
-4. Save.
-
----
-
-# Verification (after both calendars are wired)
-
-For each calendar (do this for In-Person, then Virtual):
-
-1. Open the calendar's public booking link in a private browser window.
-2. Confirm the booking form shows the standard fields (First Name, Last Name,
-   Email, Phone) **plus** the T&Cs checkbox.
-3. Confirm the "Terms & Conditions" text is a clickable link. It will 404 until the
-   T&Cs page (Phase 1 task 8) is built: that is expected, the link target just does
-   not exist yet.
-4. Attempt to book **without** ticking the checkbox. Confirm GHL **rejects** the
-   submission (the form should block and flag the required checkbox). This is the
-   core test: no acceptance, no booking.
-5. Tick the checkbox and complete a test booking. Confirm it succeeds.
-6. In GHL, open the resulting test contact. Confirm the booking went through, and
-   check whether the T&Cs acceptance was recorded anywhere (at minimum it appears in
-   the form submission record for the booking). Delete the test booking and contact
-   afterward so they do not pollute real data.
-
-If the booking form still shows the old default fields with no checkbox, the form
-did not attach: re-check the `formId` (2a) or that "BII - Booking Form" is selected
-in the calendar's Forms tab (2b).
-
-# Notes
-
-- **The terms link 404s until Phase 1 task 8** builds the actual T&Cs page. The
-  checkbox and the required-enforcement work regardless; only the link target is
-  pending. Expected, not a defect.
-- **Acceptance timestamp is out of scope here.** GHL does not stamp a datetime when
-  a checkbox is ticked. If Lo later wants an explicit "T&Cs accepted at" record, that
-  is a small workflow (on booking, set the already-provisioned `bii_tcs_accepted_at`
-  field, `ZAn6aTP7fW6UX3FYvwu3`, to now). Not built in this task.
-- **Future terms-language edits are a single edit** to `BII - Booking Form`, which
-  propagates to both calendars because they share the one form.
-
-# Rollback
-
-To remove the T&Cs requirement:
-
-- Revert each calendar's `formId` back to empty / the Default Form. Via MCP:
-  `update_calendar calendarId=<id> formId=""` for each. Via UI: each calendar's
-  Forms tab, select "Default Form".
-- Optionally delete the `BII - Booking Form` (Sites then Forms then the form's
-  three-dot menu then Delete). Deleting the form does not affect contacts or
-  bookings already taken.
-
-Reverting the calendars to the Default Form restores the original booking
-experience (standard fields, the old consent checkbox) with no T&Cs requirement.
+- **Calendars:** restore the prior consent text via `update_calendar`, including
+  `slotDuration: 90` in the body to avoid the reset above. The prior consentLabel
+  was the marketing line "I confirm that I want to receive content from this
+  company using any contact information I provide."
+- **Products:** remove the appended terms sentence from each description via
+  `ghl_update_product` (send the original description text, plus name / productType
+  SERVICE / availableInStore true). The original descriptions are recorded in
+  `bii-calendars.md`.
