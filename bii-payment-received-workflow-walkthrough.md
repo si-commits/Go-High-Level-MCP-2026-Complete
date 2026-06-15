@@ -24,9 +24,9 @@ script.
 ## Pre-flight checklist
 
 1. **Template #11 exists:** `BII - Intake Delivery` (`6a307fe706bb2896fa08ebe6`).
-2. **Tags exist:** `bii:applicant` (`8wzBeGqago1cVnK0tRi4`) and
-   `bii:studio-access-pending` (`Lc27WvS0I7cbzc12EZ1K`). See the tag note in the
-   actions for the client tag.
+2. **Tags exist:** `bii:applicant` (`8wzBeGqago1cVnK0tRi4`),
+   `bii:active-client` (`3JKk2YJ70SziDgSsiqWB`), and
+   `bii:studio-access-pending` (`Lc27WvS0I7cbzc12EZ1K`).
 3. **Custom fields exist:** `bii_tcs_accepted_at` (DATE, `ZAn6aTP7fW6UX3FYvwu3`),
    `bii_program_type` (SINGLE_OPTIONS, `WWPElTlPQHkNY6p3GkvF`), and the
    `Studio Access Granted` checkbox field (`bii_studio_access_granted`,
@@ -97,19 +97,12 @@ script.
 2. Tag: `bii:applicant`.
 3. Save.
 
-### Action 4: Add Tag, the client tag
+### Action 4: Add Tag, bii:active-client
 
 1. Add an action, choose "Add Contact Tag".
-2. Tag: `bii:client`.
+2. Tag: `bii:active-client` (`3JKk2YJ70SziDgSsiqWB`), the canonical post-payment
+   client tag in the BII taxonomy.
 3. Save.
-
-> **Flag, please reconcile before building.** The task specifies `bii:client`, but
-> the provisioned BII tag taxonomy (`bii-tags.md`) has **`bii:active-client`**
-> (`3JKk2YJ70SziDgSsiqWB`), not `bii:client`. There is no `bii:client` in the
-> taxonomy, so typing it here would create a new off-taxonomy tag on the fly.
-> Recommendation: use `bii:active-client` to stay consistent with the taxonomy,
-> unless you specifically want a separate `bii:client` tag. Confirm which, then set
-> this step accordingly.
 
 ### Action 5: Add Tag, bii:studio-access-pending
 
@@ -177,8 +170,8 @@ then confirm all of:
    email with the client name and the two follow-up instructions.
 4. **`bii_tcs_accepted_at`** is populated with the run date/time on the contact.
 5. **`bii_program_type`** reads `Single Session`.
-6. **Tags:** `bii:applicant` removed; the client tag added (`bii:active-client` or
-   `bii:client` per the reconciliation above); `bii:studio-access-pending` added.
+6. **Tags:** `bii:applicant` removed; `bii:active-client` added;
+   `bii:studio-access-pending` added.
 
 When all six pass, the applicant-to-client lifecycle is closed end to end:
 application, approval, booking, payment, intake delivery, and the Studio Access
